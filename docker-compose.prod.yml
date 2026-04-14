@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${PROD_COMPOSE_PROJECT_NAME:-eurodent2_copia_prod}_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eurodent
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${PROD_DB_NAME:-eurodent2_copia_prod}
+    ports:
+      - "127.0.0.1:${PROD_DB_PORT:-5435}:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./backend/scripts/init_extensions.sql:/docker-entrypoint-initdb.d/init_extensions.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eurodent -d ${PROD_DB_NAME:-eurodent2_copia_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: ${PROD_COMPOSE_PROJECT_NAME:-eurodent2_copia_prod}_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://eurodent:${DB_PASSWORD}@postgres:5432/${PROD_DB_NAME:-eurodent2_copia_prod}
+      DB_ENCRYPTION_KEY: ${DB_ENCRYPTION_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-120}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      VERIFACTU_MODE: ${VERIFACTU_MODE:-no_verifactu}
+      SIF_CODIGO: ${SIF_CODIGO:-EURODENT2-PROD}
+      SIF_VERSION: ${SIF_VERSION:-0.2.0}
+      SQL_ECHO: ${SQL_ECHO:-false}
+      FRONTEND_URL: http://localhost:${PROD_FRONTEND_PORT:-8088}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      ENVIRONMENT: production
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+    ports:
+      - "127.0.0.1:${PROD_BACKEND_PORT:-8011}:8000"
+    volumes:
+      - backend_prod_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: /api
+    container_name: ${PROD_COMPOSE_PROJECT_NAME:-eurodent2_copia_prod}_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:${PROD_FRONTEND_PORT:-8088}:80"
+
+volumes:
+  postgres_prod_data:
+  backend_prod_uploads:

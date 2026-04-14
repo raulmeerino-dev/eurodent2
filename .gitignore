@@ -1,0 +1,62 @@
+# Variables de entorno (NUNCA commitear)
+.env
+.env.*
+.env.local
+.env.*.local
+backend/.env
+backend/.env.*
+!.env.example
+!.env.production.example
+!backend/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+*.log
+
+# Alembic (no ignorar versions/)
+backend/alembic/versions/*.pyc
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Docker
+.docker/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Datos sensibles / backups
+*.gpg
+*.dump
+*.sql.gz
+backups/
+
+# Media / uploads
+backend/uploads/
+backend/media/

@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --app-bg: #e7edf4;
+    --app-ink: #0f172a;
+    --app-panel: rgba(255, 255, 255, 0.88);
+    --app-panel-strong: #ffffff;
+    --app-accent: #0891b2;
+    --app-accent-strong: #0f766e;
+    --app-border: rgba(148, 163, 184, 0.28);
+    --app-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: "Aptos", "Segoe UI Variable Display", "Segoe UI", "IBM Plex Sans", sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    background: var(--app-bg);
+  }
+
+  body {
+    color: var(--app-ink);
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.14), transparent 22%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, var(--app-bg) 100%);
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent 78%);
+    opacity: 0.5;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background: var(--app-panel);
+    border: 1px solid var(--app-border);
+    box-shadow: var(--app-shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  /* Scrollbar fina para tablas y listas densas */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 3px;
+  }
+}

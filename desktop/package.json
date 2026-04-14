@@ -1,0 +1,32 @@
+{
+  "name": "eurodent2-desktop-shell",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shell de escritorio para la copia de trabajo de Eurodent 2.0",
+  "main": "src/main.cjs",
+  "scripts": {
+    "dev": "electron .",
+    "dist": "electron-builder --win nsis portable"
+  },
+  "build": {
+    "appId": "com.eurodent.copy.desktop",
+    "productName": "Eurodent 2 Copy",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1"
+  }
+}
