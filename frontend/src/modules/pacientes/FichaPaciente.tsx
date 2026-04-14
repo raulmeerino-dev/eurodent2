@@ -1,6 +1,6 @@
-/**
- * FichaPaciente — Vista completa de un paciente.
- * Tabs: Datos | Salud | Historial | Pendiente | Citas | Presupuestos | Facturación
+﻿/**
+ * FichaPaciente â€” Vista completa de un paciente.
+ * Tabs: Datos | Salud | Historial | Pendiente | Citas | Presupuestos | FacturaciÃ³n
  */
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ import HistorialClinico from "../historial/HistorialClinico";
 import { abrirPdfFactura, abrirPdfPresupuesto } from "../../api/facturas";
 import CitaModal from "../agenda/CitaModal";
 import { NuevaFacturaModal } from "../facturacion/FacturacionPage";
+import { NuevoPresupuestoModal } from "../presupuestos/PresupuestosPage";
 import type { Factura, Doctor } from "../../types";
 import type { Presupuesto } from "../../api/presupuestos";
 import type { DocumentoPaciente, CategoriaDocumento } from "../../api/documentos";
@@ -36,7 +37,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "pendiente",     label: "Pendiente" },
   { id: "citas",         label: "Citas" },
   { id: "presupuestos",  label: "Presupuestos" },
-  { id: "facturacion",   label: "Facturación" },
+  { id: "facturacion",   label: "FacturaciÃ³n" },
   { id: "archivos",      label: "Archivos" },
   { id: "laboratorio",   label: "Laboratorio" },
 ];
@@ -56,7 +57,7 @@ const COLORES_ESTADO_FACT: Record<string, string> = {
   anulada: "bg-red-100 text-red-500",
 };
 
-// ─── Componente principal ─────────────────────────────────────────────────────
+// â”€â”€â”€ Componente principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function FichaPaciente() {
   const { id } = useParams<{ id: string }>();
@@ -64,6 +65,7 @@ export default function FichaPaciente() {
   const [editando, setEditando] = useState(false);
   const [tab, setTab] = useState<Tab>("datos");
   const [nuevaCitaModal, setNuevaCitaModal] = useState(false);
+  const [nuevoPresupuestoModal, setNuevoPresupuestoModal] = useState(false);
   const [nuevaFacturaModal, setNuevaFacturaModal] = useState(false);
   const [cobrandoFactura, setCobrandoFactura] = useState<Factura | null>(null);
 
@@ -90,7 +92,7 @@ export default function FichaPaciente() {
     select: (data) => (Array.isArray(data) ? data : []),
   });
 
-  const { data: presupuestos = [] } = usePresupuestos(id ? { paciente_id: id } : undefined);
+  const { data: presupuestos = [], refetch: refetchPresupuestos } = usePresupuestos(id ? { paciente_id: id } : undefined);
 
   const { data: trabajoPendiente = [], refetch: refetchTrabajo } = useQuery({
     queryKey: ["trabajo-pendiente", id],
@@ -133,7 +135,7 @@ export default function FichaPaciente() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* ── Cabecera ── */}
+      {/* â”€â”€ Cabecera â”€â”€ */}
       <div className="shrink-0 bg-white border-b border-gray-200 px-5 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Identidad */}
@@ -147,7 +149,7 @@ export default function FichaPaciente() {
               </h1>
               <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500 flex-wrap">
                 <span className="font-mono">Hx{paciente.num_historial}</span>
-                {edad !== null && <span>{edad} años</span>}
+                {edad !== null && <span>{edad} aÃ±os</span>}
                 {paciente.telefono && (
                   <a href={`tel:${paciente.telefono}`} className="text-blue-600 hover:underline">
                     {paciente.telefono}
@@ -157,7 +159,7 @@ export default function FichaPaciente() {
                   <span className="text-red-600 font-semibold">! {numFaltas} falta{numFaltas !== 1 ? "s" : ""}</span>
                 )}
                 {saldoPendiente > 0.01 && (
-                  <span className="text-red-600 font-semibold">$ {saldoPendiente.toFixed(2)} €</span>
+                  <span className="text-red-600 font-semibold">$ {saldoPendiente.toFixed(2)} â‚¬</span>
                 )}
                 {/* Tags */}
                 {paciente.referencias?.map((r) => (
@@ -170,8 +172,17 @@ export default function FichaPaciente() {
             </div>
           </div>
 
-          {/* Acciones rápidas */}
+          {/* Acciones rÃ¡pidas */}
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                setTab("presupuestos");
+                setNuevoPresupuestoModal(true);
+              }}
+              className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800"
+            >
+              + Presupuesto
+            </button>
             <button
               onClick={() => setNuevaCitaModal(true)}
               className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
@@ -204,13 +215,13 @@ export default function FichaPaciente() {
             </button>
             <button onClick={() => navigate(-1)}
               className="rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50">
-              ← Volver
+              â† Volver
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── Tabs ── */}
+      {/* â”€â”€ Tabs â”€â”€ */}
       <div className="shrink-0 border-b border-gray-200 bg-slate-50/70 px-5 py-3">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <HubShortcutCard
@@ -271,7 +282,7 @@ export default function FichaPaciente() {
         ))}
       </div>
 
-      {/* ── Contenido ── */}
+      {/* â”€â”€ Contenido â”€â”€ */}
       <div className="flex-1 overflow-hidden">
         {tab === "datos" && (
           <TabDatos paciente={paciente} refsCatalogo={refsCatalogo}
@@ -299,12 +310,16 @@ export default function FichaPaciente() {
           />
         )}
         {tab === "presupuestos" && (
-          <TabPresupuestos presupuestos={presupuestos} />
+          <TabPresupuestos
+            presupuestos={presupuestos}
+            onNuevo={() => setNuevoPresupuestoModal(true)}
+          />
         )}
         {tab === "facturacion" && (
           <TabFacturacion
             facturas={facturas}
             onCobrar={(f) => setCobrandoFactura(f)}
+            onNuevaFactura={() => setNuevaFacturaModal(true)}
           />
         )}
         {tab === "archivos" && id && (
@@ -315,7 +330,7 @@ export default function FichaPaciente() {
         )}
       </div>
 
-      {/* ── Modales ── */}
+      {/* â”€â”€ Modales â”€â”€ */}
       {editando && (
         <PacienteFormModal paciente={paciente} onClose={() => setEditando(false)} />
       )}
@@ -324,6 +339,19 @@ export default function FichaPaciente() {
           doctores={doctores}
           doctorIdInicial={doctores[0]?.id}
           onClose={() => setNuevaCitaModal(false)}
+        />
+      )}
+      {nuevoPresupuestoModal && (
+        <NuevoPresupuestoModal
+          onClose={() => {
+            setNuevoPresupuestoModal(false);
+            refetchPresupuestos();
+          }}
+          pacienteInicial={{
+            id: paciente.id,
+            nombre: paciente.nombre,
+            apellidos: paciente.apellidos,
+          }}
         />
       )}
       {nuevaFacturaModal && (
@@ -349,7 +377,7 @@ export default function FichaPaciente() {
   );
 }
 
-// ─── Tab Datos ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Datos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function HubShortcutCard({
   label,
@@ -370,18 +398,20 @@ function HubShortcutCard({
     <button
       onClick={onClick}
       className={[
-        "rounded-2xl border bg-white px-4 py-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-        emphasis ? "border-amber-200 bg-amber-50/70" : "border-slate-200",
+        "border-l-4 bg-white px-4 py-4 text-left transition-colors hover:bg-slate-50",
+        emphasis ? "border-amber-400" : "border-slate-300",
       ].join(" ")}
     >
       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{label}</p>
-      <p className={["mt-3 text-2xl font-semibold tracking-tight", emphasis ? "text-amber-700" : "text-slate-900"].join(" ")}>
-        {value}
-      </p>
-      <p className="mt-2 text-sm leading-5 text-slate-500">{hint}</p>
-      <span className="mt-4 inline-flex rounded-full bg-slate-900 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white">
-        {action}
-      </span>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <p className={["text-2xl font-semibold tracking-tight", emphasis ? "text-amber-700" : "text-slate-900"].join(" ")}>
+          {value}
+        </p>
+        <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+          {action}
+        </span>
+      </div>
+      <p className="mt-2 max-w-[15rem] text-sm leading-5 text-slate-500">{hint}</p>
     </button>
   );
 }
@@ -399,22 +429,22 @@ function TabDatos({
 }) {
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Columna izquierda — datos personales */}
+      {/* Columna izquierda â€” datos personales */}
       <div className="w-72 shrink-0 border-r border-gray-200 overflow-y-auto p-4 space-y-5">
         <Section title="Datos personales">
           <DatoRow label="DNI/NIE" value={paciente.dni_nie} />
           <DatoRow label="F. nacimiento" value={(() => {
             if (!paciente.fecha_nacimiento) return undefined;
             const e = calcularEdad(paciente.fecha_nacimiento);
-            return `${formatFecha(paciente.fecha_nacimiento)}${e !== null ? ` (${e} años)` : ""}`;
+            return `${formatFecha(paciente.fecha_nacimiento)}${e !== null ? ` (${e} aÃ±os)` : ""}`;
           })()} />
           <DatoRow label="Email" value={paciente.email} />
-          <DatoRow label="Teléfono 2" value={paciente.telefono2} />
+          <DatoRow label="TelÃ©fono 2" value={paciente.telefono2} />
           {paciente.no_correo && <p className="text-[11px] text-amber-600">Sin correo circular</p>}
         </Section>
 
-        <Section title="Dirección">
-          <DatoRow label="Dirección" value={paciente.direccion} />
+        <Section title="DirecciÃ³n">
+          <DatoRow label="DirecciÃ³n" value={paciente.direccion} />
           <DatoRow label="C.P." value={paciente.codigo_postal} />
           <DatoRow label="Ciudad" value={paciente.ciudad} />
           <DatoRow label="Provincia" value={paciente.provincia} />
@@ -450,20 +480,20 @@ function TabDatos({
         </Section>
       </div>
 
-      {/* Columna derecha — resumen */}
+      {/* Columna derecha â€” resumen */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <KpiCard label="Citas futuras" value={String(citasFuturas.length)} />
           <KpiCard label="Historial" value={String(citasPasadas.length)} />
           <KpiCard label="Faltas" value={String(numFaltas)} color={numFaltas > 0 ? "text-red-600" : undefined} />
-          <KpiCard label="Saldo pendiente" value={`${saldoPendiente.toFixed(2)} €`} color={saldoPendiente > 0.01 ? "text-red-600" : undefined} />
+          <KpiCard label="Saldo pendiente" value={`${saldoPendiente.toFixed(2)} â‚¬`} color={saldoPendiente > 0.01 ? "text-red-600" : undefined} />
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Tab Salud ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Salud â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface DatosSalud {
   alergias?: string;
@@ -503,11 +533,11 @@ function TabSalud({ pacienteId, datosSaludIniciales }: {
   }
 
   const campos: { key: keyof DatosSalud; label: string; placeholder: string }[] = [
-    { key: "alergias",             label: "Alergias",                placeholder: "Penicilina, látex, contrastes yodados..." },
-    { key: "medicacion",           label: "Medicación habitual",      placeholder: "Nombre del medicamento, dosis, frecuencia..." },
-    { key: "enfermedades",         label: "Enfermedades / Patologías",placeholder: "Diabetes, hipertensión, cardiopatía..." },
-    { key: "operaciones",          label: "Operaciones / Intervenciones", placeholder: "Descripción y fecha aproximada..." },
-    { key: "observaciones_medicas",label: "Otras observaciones",      placeholder: "Información relevante para el tratamiento..." },
+    { key: "alergias",             label: "Alergias",                placeholder: "Penicilina, lÃ¡tex, contrastes yodados..." },
+    { key: "medicacion",           label: "MedicaciÃ³n habitual",      placeholder: "Nombre del medicamento, dosis, frecuencia..." },
+    { key: "enfermedades",         label: "Enfermedades / PatologÃ­as",placeholder: "Diabetes, hipertensiÃ³n, cardiopatÃ­a..." },
+    { key: "operaciones",          label: "Operaciones / Intervenciones", placeholder: "DescripciÃ³n y fecha aproximada..." },
+    { key: "observaciones_medicas",label: "Otras observaciones",      placeholder: "InformaciÃ³n relevante para el tratamiento..." },
   ];
 
   const hayDatos = campos.some((c) => datos[c.key]);
@@ -517,13 +547,13 @@ function TabSalud({ pacienteId, datosSaludIniciales }: {
       <div className="max-w-2xl">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">Historia médica</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Información de salud relevante para el tratamiento dental</p>
+            <h2 className="text-sm font-semibold text-gray-800">Historia mÃ©dica</h2>
+            <p className="text-xs text-gray-400 mt-0.5">InformaciÃ³n de salud relevante para el tratamiento dental</p>
           </div>
           {!editando ? (
             <button onClick={() => { setBorrador(datos); setEditando(true); }}
               className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
-              {hayDatos ? "Editar" : "Añadir datos"}
+              {hayDatos ? "Editar" : "AÃ±adir datos"}
             </button>
           ) : (
             <div className="flex gap-2">
@@ -544,7 +574,7 @@ function TabSalud({ pacienteId, datosSaludIniciales }: {
             <p className="text-sm text-gray-400">No hay datos de salud registrados.</p>
             <button onClick={() => { setBorrador(datos); setEditando(true); }}
               className="mt-3 text-xs text-blue-600 hover:underline">
-              Añadir historia médica →
+              AÃ±adir historia mÃ©dica â†’
             </button>
           </div>
         ) : (
@@ -574,7 +604,7 @@ function TabSalud({ pacienteId, datosSaludIniciales }: {
           </div>
         )}
 
-        {/* Adjuntos de historia médica */}
+        {/* Adjuntos de historia mÃ©dica */}
         <div className="mt-6">
           <AdjuntosSeccion pacienteId={pacienteId} categoria="historia_medica" titulo="Archivos adjuntos" />
         </div>
@@ -583,7 +613,7 @@ function TabSalud({ pacienteId, datosSaludIniciales }: {
   );
 }
 
-// ─── Tab Citas ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Citas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type CitaRow = {
   id: string;
@@ -602,7 +632,7 @@ function TabCitas({ citasFuturas, citasPasadas, onNuevaCita }: {
     <div className="h-full overflow-y-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          Próximas citas ({citasFuturas.length})
+          PrÃ³ximas citas ({citasFuturas.length})
         </h3>
         <button onClick={onNuevaCita}
           className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
@@ -613,7 +643,7 @@ function TabCitas({ citasFuturas, citasPasadas, onNuevaCita }: {
       {citasFuturas.length > 0 ? (
         <CitasList citas={citasFuturas} />
       ) : (
-        <p className="text-xs text-gray-400">Sin citas próximas.</p>
+        <p className="text-xs text-gray-400">Sin citas prÃ³ximas.</p>
       )}
 
       <div className="border-t border-gray-100 pt-4">
@@ -630,210 +660,299 @@ function TabCitas({ citasFuturas, citasPasadas, onNuevaCita }: {
   );
 }
 
-// ─── Tab Presupuestos ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Presupuestos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function TabPresupuestos({ presupuestos }: { presupuestos: Presupuesto[] }) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-
-  if (presupuestos.length === 0) {
-    return <div className="flex h-full items-center justify-center text-sm text-gray-400">Sin presupuestos.</div>;
-  }
-
-  return (
-    <div className="h-full overflow-y-auto p-4 space-y-2">
-      {presupuestos.map((p) => {
-        const isOpen = expanded === p.id;
-        const badge = COLORES_ESTADO_PRESUP[p.estado] ?? "bg-gray-100 text-gray-600";
-        return (
-          <div key={p.id} className="border border-gray-200 rounded-lg overflow-hidden">
-            <button onClick={() => setExpanded(isOpen ? null : p.id)}
-              className="w-full flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 text-left">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-gray-500 text-xs">#{p.numero}</span>
-                <span className="text-gray-700">{format(parseISO(p.fecha), "dd/MM/yyyy")}</span>
-                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${badge}`}>{p.estado}</span>
-                {p.doctor && <span className="text-gray-400 text-xs">{p.doctor.nombre}</span>}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-gray-800 font-medium">{n(p.total).toFixed(2)} €</span>
-                <button onClick={(e) => { e.stopPropagation(); abrirPdfPresupuesto(p.id); }}
-                  className="rounded px-2 py-0.5 text-[11px] bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-700">
-                  PDF
-                </button>
-                <span className="text-gray-400 text-xs">{isOpen ? "▲" : "▼"}</span>
-              </div>
-            </button>
-            {isOpen && (
-              <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                {p.lineas.length === 0 ? (
-                  <p className="text-xs text-gray-400">Sin líneas.</p>
-                ) : (
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="text-gray-400 border-b border-gray-200">
-                        <th className="text-left pb-1 font-medium">Tratamiento</th>
-                        <th className="text-center pb-1 font-medium w-16">Pieza</th>
-                        <th className="text-right pb-1 font-medium w-20">Precio</th>
-                        <th className="text-center pb-1 font-medium w-16">Desc.</th>
-                        <th className="text-right pb-1 font-medium w-20">Neto</th>
-                        <th className="text-center pb-1 font-medium w-16">Acept.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {p.lineas.map((l) => (
-                        <tr key={l.id} className="border-b border-gray-100 last:border-0">
-                          <td className="py-1 text-gray-700">{l.tratamiento?.nombre ?? "—"}</td>
-                          <td className="py-1 text-center text-gray-500">
-                            {l.pieza_dental ?? "—"}{l.caras && <span className="ml-1 text-gray-400">{l.caras}</span>}
-                          </td>
-                          <td className="py-1 text-right text-gray-700">{n(l.precio_unitario).toFixed(2)} €</td>
-                          <td className="py-1 text-center text-gray-500">
-                            {n(l.descuento_porcentaje) > 0 ? `${l.descuento_porcentaje}%` : "—"}
-                          </td>
-                          <td className="py-1 text-right font-medium text-gray-800">{n(l.importe_neto).toFixed(2)} €</td>
-                          <td className="py-1 text-center">
-                            {l.aceptado ? <span className="text-green-600 font-bold">Sí</span> : <span className="text-gray-400">No</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t border-gray-200">
-                        <td colSpan={4} className="pt-2 text-right text-gray-500 font-medium">Total:</td>
-                        <td className="pt-2 text-right font-bold text-gray-800">{n(p.total).toFixed(2)} €</td>
-                        <td />
-                      </tr>
-                    </tfoot>
-                  </table>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Tab Facturación ──────────────────────────────────────────────────────────
-
-function TabFacturacion({ facturas, onCobrar }: {
-  facturas: Factura[];
-  onCobrar: (f: Factura) => void;
+function TabPresupuestos({
+  presupuestos,
+  onNuevo,
+}: {
+  presupuestos: Presupuesto[];
+  onNuevo: () => void;
 }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState<string | null>(null);
-
-  if (facturas.length === 0) {
-    return <div className="flex h-full items-center justify-center text-sm text-gray-400">Sin facturas.</div>;
-  }
-
-  const totalFacturado = facturas.filter((f) => f.estado !== "anulada").reduce((acc, f) => acc + n(f.total), 0);
-  const totalCobrado   = facturas.filter((f) => f.estado !== "anulada").reduce((acc, f) => acc + n(f.total_cobrado ?? 0), 0);
-  const totalPendiente = totalFacturado - totalCobrado;
+  const totalPresupuestado = presupuestos.reduce((acc, p) => acc + n(p.total), 0);
+  const totalAceptado = presupuestos.reduce((acc, p) => acc + n(p.total_aceptado), 0);
 
   return (
-    <div className="h-full overflow-y-auto p-4">
-      {/* KPIs */}
-      <div className="flex gap-3 mb-4">
-        <KpiCard label="Facturado" value={`${totalFacturado.toFixed(2)} €`} />
-        <KpiCard label="Cobrado" value={`${totalCobrado.toFixed(2)} €`} color="text-green-700" />
-        <KpiCard label="Pendiente" value={`${totalPendiente.toFixed(2)} €`} color={totalPendiente > 0.01 ? "text-red-600" : undefined} />
+    <div className="h-full overflow-y-auto p-4 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
+            Presupuestos del paciente
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {presupuestos.length} plan{presupuestos.length !== 1 ? "es" : ""} · Total {formatEUR(totalPresupuestado)} · Aceptado {formatEUR(totalAceptado)}
+          </p>
+        </div>
+        <button
+          onClick={onNuevo}
+          className="rounded-md bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-800"
+        >
+          + Nuevo presupuesto
+        </button>
       </div>
 
-      <div className="space-y-2">
-        {facturas.map((f) => {
-          const isOpen = expanded === f.id;
-          const badge = COLORES_ESTADO_FACT[f.estado] ?? "bg-gray-100 text-gray-600";
-          const pendiente = n(f.pendiente ?? 0);
-          return (
-            <div key={f.id} className="border border-gray-200 rounded-lg overflow-hidden">
-              <div className="flex items-center px-4 py-2.5 text-sm hover:bg-gray-50">
-                {/* Info factura */}
-                <button onClick={() => setExpanded(isOpen ? null : f.id)} className="flex-1 flex items-center gap-3 text-left">
-                  <span className="font-mono text-gray-500 text-xs">{f.serie}-{String(f.numero).padStart(4, "0")}</span>
-                  <span className="text-gray-700 text-xs">{format(parseISO(f.fecha), "dd/MM/yyyy")}</span>
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${badge}`}>{f.estado}</span>
-                  {f.forma_pago && <span className="text-gray-400 text-xs">{f.forma_pago.nombre}</span>}
-                </button>
-                {/* Importes y acciones */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="text-right">
-                    <div className="font-medium text-gray-800 text-xs">{n(f.total).toFixed(2)} €</div>
-                    {pendiente > 0.01 && <div className="text-[11px] text-red-600">Pte: {pendiente.toFixed(2)} €</div>}
+      {presupuestos.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+          <p className="text-sm font-medium text-gray-700">Todavia no hay presupuestos para este paciente.</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Crea el plan desde aqui para abrir el odontograma y preparar el tratamiento.
+          </p>
+          <button
+            onClick={onNuevo}
+            className="mt-5 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Crear primer presupuesto
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {presupuestos.map((p) => {
+            const isOpen = expanded === p.id;
+            const badge = COLORES_ESTADO_PRESUP[p.estado] ?? "bg-gray-100 text-gray-600";
+            return (
+              <div key={p.id} className="overflow-hidden rounded-lg border border-gray-200">
+                <button
+                  onClick={() => setExpanded(isOpen ? null : p.id)}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs text-gray-500">#{p.numero}</span>
+                    <span className="text-gray-700">{format(parseISO(p.fecha), "dd/MM/yyyy")}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${badge}`}>{p.estado}</span>
+                    {p.doctor && <span className="text-xs text-gray-400">{p.doctor.nombre}</span>}
                   </div>
-                  {pendiente > 0.01 && f.estado !== "anulada" && (
-                    <button onClick={() => onCobrar(f)}
-                      className="rounded-md bg-green-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-green-700">
-                      Cobrar
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-gray-800">{formatEUR(n(p.total))}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/presupuestos/${p.id}`);
+                      }}
+                      className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-slate-200"
+                    >
+                      Abrir
                     </button>
-                  )}
-                  <button onClick={(e) => { e.stopPropagation(); abrirPdfFactura(f.id); }}
-                    className="rounded px-2 py-1 text-[11px] bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-700">
-                    PDF
-                  </button>
-                  <span className="text-gray-400 text-xs cursor-pointer" onClick={() => setExpanded(isOpen ? null : f.id)}>
-                    {isOpen ? "▲" : "▼"}
-                  </span>
-                </div>
-              </div>
-
-              {isOpen && (
-                <div className="border-t border-gray-100 px-4 py-3 bg-gray-50 space-y-3">
-                  {f.lineas.length > 0 && (
-                    <div>
-                      <p className="text-[10px] text-gray-400 uppercase font-semibold mb-1">Conceptos</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        abrirPdfPresupuesto(p.id);
+                      }}
+                      className="rounded bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 hover:bg-blue-100 hover:text-blue-700"
+                    >
+                      PDF
+                    </button>
+                    <span className="text-xs text-gray-400">{isOpen ? "-" : "+"}</span>
+                  </div>
+                </button>
+                {isOpen && (
+                  <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
+                    {p.lineas.length === 0 ? (
+                      <p className="text-xs text-gray-400">Sin lineas.</p>
+                    ) : (
                       <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-200 text-gray-400">
+                            <th className="pb-1 text-left font-medium">Tratamiento</th>
+                            <th className="w-16 pb-1 text-center font-medium">Pieza</th>
+                            <th className="w-20 pb-1 text-right font-medium">Precio</th>
+                            <th className="w-16 pb-1 text-center font-medium">Desc.</th>
+                            <th className="w-20 pb-1 text-right font-medium">Neto</th>
+                            <th className="w-16 pb-1 text-center font-medium">Acept.</th>
+                          </tr>
+                        </thead>
                         <tbody>
-                          {f.lineas.map((l) => (
+                          {p.lineas.map((l) => (
                             <tr key={l.id} className="border-b border-gray-100 last:border-0">
-                              <td className="py-0.5 text-gray-700">{l.concepto_ficticio || l.concepto}</td>
-                              <td className="py-0.5 text-center text-gray-400 w-8">{l.cantidad}</td>
-                              <td className="py-0.5 text-right text-gray-600 w-20">{n(l.precio_unitario).toFixed(2)} €</td>
-                              <td className="py-0.5 text-right font-medium text-gray-800 w-20">{n(l.subtotal).toFixed(2)} €</td>
+                              <td className="py-1 text-gray-700">{l.tratamiento?.nombre ?? "—"}</td>
+                              <td className="py-1 text-center text-gray-500">
+                                {l.pieza_dental ?? "—"}
+                                {l.caras && <span className="ml-1 text-gray-400">{l.caras}</span>}
+                              </td>
+                              <td className="py-1 text-right text-gray-700">{formatEUR(n(l.precio_unitario))}</td>
+                              <td className="py-1 text-center text-gray-500">
+                                {n(l.descuento_porcentaje) > 0 ? `${l.descuento_porcentaje}%` : "—"}
+                              </td>
+                              <td className="py-1 text-right font-medium text-gray-800">{formatEUR(n(l.importe_neto))}</td>
+                              <td className="py-1 text-center">
+                                {l.aceptado ? <span className="font-bold text-green-600">Si</span> : <span className="text-gray-400">No</span>}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot>
                           <tr className="border-t border-gray-200">
-                            <td colSpan={2} className="pt-1 text-right text-gray-500 text-[11px]">
-                              Subtotal: {n(f.subtotal).toFixed(2)} € · IVA: {n(f.iva_total).toFixed(2)} €
-                            </td>
-                            <td colSpan={2} className="pt-1 text-right font-bold text-gray-800">{n(f.total).toFixed(2)} €</td>
+                            <td colSpan={4} className="pt-2 text-right font-medium text-gray-500">Total:</td>
+                            <td className="pt-2 text-right font-bold text-gray-800">{formatEUR(n(p.total))}</td>
+                            <td />
                           </tr>
                         </tfoot>
                       </table>
-                    </div>
-                  )}
-                  {f.cobros.length > 0 && (
-                    <div>
-                      <p className="text-[10px] text-gray-400 uppercase font-semibold mb-1">Cobros</p>
-                      <ul className="space-y-0.5">
-                        {f.cobros.map((c) => (
-                          <li key={c.id} className="flex justify-between text-xs text-gray-600">
-                            <span>
-                              {format(parseISO(c.fecha), "dd/MM/yyyy")}
-                              {c.forma_pago && <span className="ml-2 text-gray-400">{c.forma_pago.nombre}</span>}
-                              {c.notas && <span className="ml-2 text-gray-400 italic">{c.notas}</span>}
-                            </span>
-                            <span className="font-medium text-green-700">+{n(c.importe).toFixed(2)} €</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {f.observaciones && <p className="text-xs text-gray-500 italic">{f.observaciones}</p>}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
+function TabFacturacion({ facturas, onCobrar, onNuevaFactura }: {
+  facturas: Factura[];
+  onCobrar: (f: Factura) => void;
+  onNuevaFactura: () => void;
+}) {
+  const navigate = useNavigate();
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-// ─── Tab Trabajo Pendiente ────────────────────────────────────────────────────
+  const totalFacturado = facturas.filter((f) => f.estado !== "anulada").reduce((acc, f) => acc + n(f.total), 0);
+  const totalCobrado = facturas.filter((f) => f.estado !== "anulada").reduce((acc, f) => acc + n(f.total_cobrado ?? 0), 0);
+  const totalPendiente = totalFacturado - totalCobrado;
 
+  return (
+    <div className="h-full overflow-y-auto p-4">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
+            Cobros y facturacion
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Emision, cobro y consulta documental desde la ficha del paciente.
+          </p>
+        </div>
+        <button
+          onClick={onNuevaFactura}
+          className="rounded-md bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-800"
+        >
+          + Nueva factura
+        </button>
+      </div>
+
+      <div className="mb-4 flex gap-3">
+        <KpiCard label="Facturado" value={formatEUR(totalFacturado)} />
+        <KpiCard label="Cobrado" value={formatEUR(totalCobrado)} color="text-green-700" />
+        <KpiCard label="Pendiente" value={formatEUR(totalPendiente)} color={totalPendiente > 0.01 ? "text-red-600" : undefined} />
+      </div>
+
+      {facturas.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+          <p className="text-sm font-medium text-gray-700">Este paciente todavia no tiene facturas.</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Puedes emitir la primera factura desde aqui y dejar todo el circuito fiscal dentro de la ficha.
+          </p>
+          <button
+            onClick={onNuevaFactura}
+            className="mt-5 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+          >
+            Emitir primera factura
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {facturas.map((f) => {
+            const isOpen = expanded === f.id;
+            const badge = COLORES_ESTADO_FACT[f.estado] ?? "bg-gray-100 text-gray-600";
+            const pendiente = n(f.pendiente ?? 0);
+            return (
+              <div key={f.id} className="overflow-hidden rounded-lg border border-gray-200">
+                <div className="flex items-center px-4 py-2.5 text-sm hover:bg-gray-50">
+                  <button onClick={() => setExpanded(isOpen ? null : f.id)} className="flex-1 text-left">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-xs text-gray-500">{f.serie}-{String(f.numero).padStart(4, "0")}</span>
+                      <span className="text-xs text-gray-700">{format(parseISO(f.fecha), "dd/MM/yyyy")}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${badge}`}>{f.estado}</span>
+                      {f.forma_pago && <span className="text-xs text-gray-400">{f.forma_pago.nombre}</span>}
+                    </div>
+                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="text-right">
+                      <div className="text-xs font-medium text-gray-800">{formatEUR(n(f.total))}</div>
+                      {pendiente > 0.01 && <div className="text-[11px] text-red-600">Pte: {formatEUR(pendiente)}</div>}
+                    </div>
+                    {pendiente > 0.01 && f.estado !== "anulada" && (
+                      <button onClick={() => onCobrar(f)} className="rounded-md bg-green-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-green-700">
+                        Cobrar
+                      </button>
+                    )}
+                    <button
+                      onClick={() => navigate(`/facturacion/${f.id}`)}
+                      className="rounded bg-slate-100 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-200"
+                    >
+                      Abrir
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        abrirPdfFactura(f.id);
+                      }}
+                      className="rounded bg-gray-100 px-2 py-1 text-[11px] text-gray-600 hover:bg-blue-100 hover:text-blue-700"
+                    >
+                      PDF
+                    </button>
+                    <span className="cursor-pointer text-xs text-gray-400" onClick={() => setExpanded(isOpen ? null : f.id)}>
+                      {isOpen ? "-" : "+"}
+                    </span>
+                  </div>
+                </div>
+
+                {isOpen && (
+                  <div className="space-y-3 border-t border-gray-100 bg-gray-50 px-4 py-3">
+                    {f.lineas.length > 0 && (
+                      <div>
+                        <p className="mb-1 text-[10px] font-semibold uppercase text-gray-400">Conceptos</p>
+                        <table className="w-full text-xs">
+                          <tbody>
+                            {f.lineas.map((l) => (
+                              <tr key={l.id} className="border-b border-gray-100 last:border-0">
+                                <td className="py-0.5 text-gray-700">{l.concepto_ficticio || l.concepto}</td>
+                                <td className="w-8 py-0.5 text-center text-gray-400">{l.cantidad}</td>
+                                <td className="w-20 py-0.5 text-right text-gray-600">{formatEUR(n(l.precio_unitario))}</td>
+                                <td className="w-20 py-0.5 text-right font-medium text-gray-800">{formatEUR(n(l.subtotal))}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot>
+                            <tr className="border-t border-gray-200">
+                              <td colSpan={2} className="pt-1 text-right text-[11px] text-gray-500">
+                                Subtotal: {formatEUR(n(f.subtotal))} · IVA: {formatEUR(n(f.iva_total))}
+                              </td>
+                              <td colSpan={2} className="pt-1 text-right font-bold text-gray-800">{formatEUR(n(f.total))}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    )}
+                    {f.cobros.length > 0 && (
+                      <div>
+                        <p className="mb-1 text-[10px] font-semibold uppercase text-gray-400">Cobros</p>
+                        <ul className="space-y-0.5">
+                          {f.cobros.map((c) => (
+                            <li key={c.id} className="flex justify-between text-xs text-gray-600">
+                              <span>
+                                {format(parseISO(c.fecha), "dd/MM/yyyy")}
+                                {c.forma_pago && <span className="ml-2 text-gray-400">{c.forma_pago.nombre}</span>}
+                                {c.notas && <span className="ml-2 italic text-gray-400">{c.notas}</span>}
+                              </span>
+                              <span className="font-medium text-green-700">+{formatEUR(n(c.importe))}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {f.observaciones && <p className="text-xs italic text-gray-500">{f.observaciones}</p>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 interface TrabajoPendienteItem {
   id: string;
   tratamiento: { nombre: string; codigo: string } | null;
@@ -874,8 +993,8 @@ function TabPendiente({ items, onRealizado }: { items: TrabajoPendienteItem[]; o
           <div key={item.id} className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
             <div>
               <p className="text-sm font-medium text-gray-800">
-                {item.tratamiento?.nombre ?? "—"}
-                {item.pieza_dental && <span className="ml-2 text-xs text-gray-500">· Pieza {item.pieza_dental}</span>}
+                {item.tratamiento?.nombre ?? "â€”"}
+                {item.pieza_dental && <span className="ml-2 text-xs text-gray-500">Â· Pieza {item.pieza_dental}</span>}
                 {item.caras && <span className="ml-1 text-xs text-gray-400">({item.caras})</span>}
               </p>
               {item.tratamiento?.codigo && (
@@ -893,7 +1012,7 @@ function TabPendiente({ items, onRealizado }: { items: TrabajoPendienteItem[]; o
   );
 }
 
-// ─── Modal Cobro Rápido ───────────────────────────────────────────────────────
+// â”€â”€â”€ Modal Cobro RÃ¡pido â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function CobrarModal({ factura, onClose }: { factura: Factura; onClose: () => void }) {
   const { data: formasPago = [] } = useFormasPago();
@@ -920,7 +1039,7 @@ function CobrarModal({ factura, onClose }: { factura: Factura; onClose: () => vo
           <div>
             <h2 className="text-base font-semibold text-gray-800">Registrar cobro</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              Factura {factura.serie}-{String(factura.numero).padStart(4, "0")} · Pendiente:{" "}
+              Factura {factura.serie}-{String(factura.numero).padStart(4, "0")} Â· Pendiente:{" "}
               <span className="text-red-600 font-medium">{formatEUR(pendiente)}</span>
             </p>
           </div>
@@ -928,7 +1047,7 @@ function CobrarModal({ factura, onClose }: { factura: Factura; onClose: () => vo
         </div>
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Importe (€) *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Importe (â‚¬) *</label>
             <input type="number" min="0.01" step="0.01" required value={importe}
               onChange={(e) => setImporte(e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -960,7 +1079,7 @@ function CobrarModal({ factura, onClose }: { factura: Factura; onClose: () => vo
   );
 }
 
-// ─── Helpers compartidos ──────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers compartidos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -1008,14 +1127,14 @@ function KpiCard({ label, value, color }: { label: string; value: string; color?
   );
 }
 
-// ─── Tab Archivos ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Archivos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const CATEGORIAS: { value: CategoriaDocumento; label: string; color: string }[] = [
-  { value: "radiografia",    label: "Radiografía",      color: "bg-purple-100 text-purple-700" },
+  { value: "radiografia",    label: "RadiografÃ­a",      color: "bg-purple-100 text-purple-700" },
   { value: "implante",       label: "Implante",         color: "bg-blue-100 text-blue-700" },
   { value: "consentimiento", label: "Consentimiento",   color: "bg-green-100 text-green-700" },
   { value: "presupuesto",    label: "Presupuesto",      color: "bg-yellow-100 text-yellow-700" },
-  { value: "historia_medica",label: "Historia médica",  color: "bg-rose-100 text-rose-700" },
+  { value: "historia_medica",label: "Historia mÃ©dica",  color: "bg-rose-100 text-rose-700" },
   { value: "otro",           label: "Otro",             color: "bg-gray-100 text-gray-600" },
 ];
 
@@ -1052,7 +1171,7 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
   }
 
   async function handleEliminar(doc: DocumentoPaciente) {
-    if (!confirm(`¿Eliminar "${doc.nombre_original}"?`)) return;
+    if (!confirm(`Â¿Eliminar "${doc.nombre_original}"?`)) return;
     try {
       await eliminarDocumento(pacienteId, doc.id);
       qc.invalidateQueries({ queryKey: ["documentos", pacienteId] });
@@ -1074,7 +1193,7 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Subir archivo</h3>
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Categoría</label>
+              <label className="block text-xs text-gray-500 mb-1">CategorÃ­a</label>
               <select
                 value={categoriaSubida}
                 onChange={(e) => setCategoriaSubida(e.target.value as CategoriaDocumento)}
@@ -1086,12 +1205,12 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
               </select>
             </div>
             <div className="flex-1 min-w-[180px]">
-              <label className="block text-xs text-gray-500 mb-1">Descripción (opcional)</label>
+              <label className="block text-xs text-gray-500 mb-1">DescripciÃ³n (opcional)</label>
               <input
                 type="text"
                 value={descripcionSubida}
                 onChange={(e) => setDescripcionSubida(e.target.value)}
-                placeholder="Ej: Rx panorámica 2025, Plan de implante..."
+                placeholder="Ej: Rx panorÃ¡mica 2025, Plan de implante..."
                 className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -1106,11 +1225,11 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
               />
             </label>
           </div>
-          <p className="mt-2 text-[11px] text-gray-400">PDF, imágenes (JPG, PNG, TIFF...) o documentos Word. Máx. 50 MB.</p>
+          <p className="mt-2 text-[11px] text-gray-400">PDF, imÃ¡genes (JPG, PNG, TIFF...) o documentos Word. MÃ¡x. 50 MB.</p>
           {errorSubida && <p className="mt-2 text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded">{errorSubida}</p>}
         </div>
 
-        {/* Filtros por categoría */}
+        {/* Filtros por categorÃ­a */}
         {docs.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             <button
@@ -1140,7 +1259,7 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
         ) : docsFiltrados.length === 0 ? (
           <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center">
             <p className="text-sm text-gray-400">
-              {docs.length === 0 ? "No hay archivos adjuntos para este paciente." : "No hay archivos en esta categoría."}
+              {docs.length === 0 ? "No hay archivos adjuntos para este paciente." : "No hay archivos en esta categorÃ­a."}
             </p>
           </div>
         ) : (
@@ -1157,7 +1276,7 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
                 <div key={doc.id} className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 hover:bg-gray-50">
                   {/* Icono */}
                   <div className="text-xl shrink-0 w-7 text-center">
-                    {esPdf ? "📄" : esImagen ? "🖼️" : "📎"}
+                    {esPdf ? "ðŸ“„" : esImagen ? "ðŸ–¼ï¸" : "ðŸ“Ž"}
                   </div>
 
                   {/* Info */}
@@ -1195,14 +1314,14 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
                       className="rounded px-2 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-700"
                       title="Descargar"
                     >
-                      ↓ Descargar
+                      â†“ Descargar
                     </button>
                     <button
                       onClick={() => handleEliminar(doc)}
                       className="rounded px-2 py-1 text-[11px] bg-red-50 hover:bg-red-100 text-red-600"
                       title="Eliminar"
                     >
-                      ✕
+                      âœ•
                     </button>
                   </div>
                 </div>
@@ -1215,7 +1334,7 @@ function TabArchivos({ pacienteId }: { pacienteId: string }) {
   );
 }
 
-// ─── Adjuntos mini-sección (reutilizable) ─────────────────────────────────────
+// â”€â”€â”€ Adjuntos mini-secciÃ³n (reutilizable) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function AdjuntosSeccion({
   pacienteId,
@@ -1273,14 +1392,14 @@ function AdjuntosSeccion({
               const esPdf = doc.mime_type === "application/pdf";
               return (
                 <li key={doc.id} className="flex items-center gap-2 text-xs">
-                  <span>{esPdf ? "📄" : esImagen ? "🖼️" : "📎"}</span>
+                  <span>{esPdf ? "ðŸ“„" : esImagen ? "ðŸ–¼ï¸" : "ðŸ“Ž"}</span>
                   <span className="flex-1 truncate text-gray-700">{doc.nombre_original}</span>
                   {(esImagen || esPdf) && (
                     <button onClick={() => verDocumento(pacienteId, doc.id)}
                       className="text-blue-600 hover:underline shrink-0">Ver</button>
                   )}
                   <button onClick={() => descargarDocumento(pacienteId, doc.id, doc.nombre_original)}
-                    className="text-gray-500 hover:text-gray-700 shrink-0">↓</button>
+                    className="text-gray-500 hover:text-gray-700 shrink-0">â†“</button>
                 </li>
               );
             })}
@@ -1291,7 +1410,7 @@ function AdjuntosSeccion({
   );
 }
 
-// ─── Tab Laboratorio (desde ficha paciente) ───────────────────────────────────
+// â”€â”€â”€ Tab Laboratorio (desde ficha paciente) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ESTADOS_LAB: { value: EstadoTrabajo; label: string; color: string; bg: string }[] = [
   { value: "pendiente",  label: "Pendiente",  color: "text-gray-600",  bg: "bg-gray-100" },
@@ -1321,7 +1440,7 @@ function TabLaboratorioPaciente({ pacienteId }: { pacienteId: string }) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-gray-400">
         <div className="text-center">
-          <p className="text-2xl mb-2">🔬</p>
+          <p className="text-2xl mb-2">ðŸ”¬</p>
           <p>Sin encargos de laboratorio para este paciente.</p>
         </div>
       </div>
@@ -1339,7 +1458,7 @@ function TabLaboratorioPaciente({ pacienteId }: { pacienteId: string }) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-medium text-gray-800">{t.descripcion}</p>
                   {t.pieza_dental && <span className="text-xs text-gray-400">Pieza {t.pieza_dental}</span>}
-                  {t.color && <span className="text-xs text-gray-400">· {t.color}</span>}
+                  {t.color && <span className="text-xs text-gray-400">Â· {t.color}</span>}
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${est.bg} ${est.color}`}>{est.label}</span>
                 </div>
                 <div className="flex gap-4 mt-1 text-xs text-gray-500 flex-wrap">
@@ -1347,7 +1466,7 @@ function TabLaboratorioPaciente({ pacienteId }: { pacienteId: string }) {
                   {t.fecha_salida && <span>Salida: {t.fecha_salida}</span>}
                   {t.fecha_entrega_prevista && <span>Prevista: {t.fecha_entrega_prevista}</span>}
                   {t.fecha_recepcion && <span className="text-teal-600">Recibido: {t.fecha_recepcion}</span>}
-                  {t.precio != null && <span>{Number(t.precio).toFixed(2)} €</span>}
+                  {t.precio != null && <span>{Number(t.precio).toFixed(2)} â‚¬</span>}
                 </div>
                 {t.observaciones && <p className="text-xs text-gray-400 mt-0.5 italic">{t.observaciones}</p>}
               </div>
@@ -1363,7 +1482,7 @@ function TabLaboratorioPaciente({ pacienteId }: { pacienteId: string }) {
                     WhatsApp
                   </button>
                 )}
-                {/* Avance rápido de estado */}
+                {/* Avance rÃ¡pido de estado */}
                 {t.estado !== "entregado" && t.estado !== "incidencia" && (() => {
                   const FLUJO: Partial<Record<EstadoTrabajo, EstadoTrabajo>> = {
                     pendiente: "enviado", enviado: "en_proceso",
@@ -1384,7 +1503,7 @@ function TabLaboratorioPaciente({ pacienteId }: { pacienteId: string }) {
                       }}
                       className={`rounded px-2 py-1 text-[11px] font-medium ${sigEst.bg} ${sigEst.color} hover:brightness-95`}
                     >
-                      → {sigEst.label}
+                      â†’ {sigEst.label}
                     </button>
                   );
                 })()}
@@ -1396,3 +1515,5 @@ function TabLaboratorioPaciente({ pacienteId }: { pacienteId: string }) {
     </div>
   );
 }
+
+

@@ -133,13 +133,21 @@ export default function PresupuestosPage() {
 }
 
 // ─── Modal nuevo presupuesto ──────────────────────────────────────────────────
-function NuevoPresupuestoModal({ onClose }: { onClose: () => void }) {
+export function NuevoPresupuestoModal({
+  onClose,
+  pacienteInicial = null,
+}: {
+  onClose: () => void;
+  pacienteInicial?: Pick<Paciente, "id" | "nombre" | "apellidos"> | null;
+}) {
   const navigate = useNavigate();
   const { data: doctores = [] } = useDoctores();
   const crearMut = useCrearPresupuesto();
 
-  const [pacienteId, setPacienteId] = useState("");
-  const [pacienteLabel, setPacienteLabel] = useState("");
+  const [pacienteId, setPacienteId] = useState(pacienteInicial?.id ?? "");
+  const [pacienteLabel, setPacienteLabel] = useState(
+    pacienteInicial ? `${pacienteInicial.apellidos}, ${pacienteInicial.nombre}` : "",
+  );
   const [doctorId, setDoctorId] = useState(doctores[0]?.id ?? "");
   const [fecha, setFecha] = useState(format(new Date(), "yyyy-MM-dd"));
   const [piePagina, setPiePagina] = useState("");
