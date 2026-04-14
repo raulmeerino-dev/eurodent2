@@ -20,8 +20,12 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "cumplimiento", label: "Cumplimiento SIF" },
 ];
 
-export default function AdminPage() {
-  const [tab, setTab] = useState<Tab>("usuarios");
+export default function AdminPage({ initialTab = "usuarios" }: { initialTab?: Tab }) {
+  const [tab, setTab] = useState<Tab>(initialTab);
+
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">

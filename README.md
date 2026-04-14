@@ -8,6 +8,19 @@ La base funcional es amplia y ya tiene bastante lógica de negocio real. No es u
 
 También hay trabajo pendiente de endurecimiento técnico en algunas áreas, sobre todo validaciones de negocio finas, calidad automática y limpieza estructural del proyecto.
 
+## Roadmap de refactor
+
+La hoja de ruta activa del refactor funcional, visual y normativo esta en [ROADMAP_REFACTOR.md](./ROADMAP_REFACTOR.md).
+
+El objetivo actual es reorganizar el producto en estos modulos:
+
+- Pacientes
+- Gestion
+- Agenda
+- Listados
+- Configuracion
+- Cumplimiento SIF / VERI*FACTU
+
 ## Stack
 
 - Frontend: React, TypeScript, Vite, TanStack Query, Zustand, React Router

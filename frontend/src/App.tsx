@@ -8,6 +8,7 @@ import AdminPage from "@/modules/admin/AdminPage";
 import LoginPage from "@/modules/auth/LoginPage";
 import FacturaEditor from "@/modules/facturacion/FacturaEditor";
 import FacturacionPage from "@/modules/facturacion/FacturacionPage";
+import GestionPage from "@/modules/gestion/GestionPage";
 import LaboratorioPage from "@/modules/laboratorio/LaboratorioPage";
 import ListadosPage from "@/modules/listados/ListadosPage";
 import FichaPaciente from "@/modules/pacientes/FichaPaciente";
@@ -150,13 +151,16 @@ export default function App() {
               <Route path="pacientes" element={<PacientesPage />} />
               <Route path="pacientes/:id" element={<FichaPaciente />} />
               <Route path="pacientes/:id/historial" element={<FichaPaciente />} />
+              <Route path="gestion" element={<GestionPage />} />
               <Route path="presupuestos" element={<PresupuestosPage />} />
               <Route path="presupuestos/:id" element={<PresupuestoEditor />} />
               <Route path="facturacion" element={<FacturacionPage />} />
               <Route path="facturacion/:id" element={<FacturaEditor />} />
               <Route path="listados" element={<ListadosPage />} />
               <Route path="laboratorio" element={<LaboratorioPage />} />
-              <Route path="admin" element={<AdminPage />} />
+              <Route path="configuracion" element={<AdminPage initialTab="usuarios" />} />
+              <Route path="cumplimiento" element={<AdminPage initialTab="cumplimiento" />} />
+              <Route path="admin" element={<AdminPage initialTab="usuarios" />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

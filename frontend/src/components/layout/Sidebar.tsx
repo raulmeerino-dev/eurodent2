@@ -12,13 +12,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/agenda", label: "Agenda", shortLabel: "AG", group: "Operacion", roles: ["recepcion", "doctor", "admin"] },
   { to: "/pacientes", label: "Pacientes", shortLabel: "PA", group: "Clinica", roles: ["recepcion", "doctor", "admin"] },
-  { to: "/presupuestos", label: "Presupuestos", shortLabel: "PR", group: "Finanzas", roles: ["recepcion", "doctor", "admin"] },
-  { to: "/facturacion", label: "Facturacion", shortLabel: "FA", group: "Finanzas", roles: ["recepcion", "admin"] },
+  { to: "/gestion", label: "Gestion", shortLabel: "GE", group: "Operacion", roles: ["recepcion", "doctor", "admin"] },
+  { to: "/agenda", label: "Agenda", shortLabel: "AG", group: "Operacion", roles: ["recepcion", "doctor", "admin"] },
   { to: "/listados", label: "Listados", shortLabel: "LI", group: "Analitica", roles: ["recepcion", "doctor", "admin"] },
-  { to: "/laboratorio", label: "Laboratorio", shortLabel: "LA", group: "Clinica", roles: ["recepcion", "doctor", "admin"] },
-  { to: "/admin", label: "Admin", shortLabel: "AD", group: "Sistema", roles: ["admin"] },
+  { to: "/configuracion", label: "Configuracion", shortLabel: "CO", group: "Sistema", roles: ["admin"] },
+  { to: "/cumplimiento", label: "Cumplimiento", shortLabel: "SI", group: "Sistema", roles: ["admin"] },
 ];
 
 export default function Sidebar() {
@@ -44,7 +43,7 @@ export default function Sidebar() {
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">DentOrg</h1>
           <p className="mt-2 max-w-[14rem] text-sm leading-5 text-slate-300/72">
-            Operacion clinica, agenda y facturacion en un mismo puesto de trabajo.
+            Clinica, gestion operativa y cumplimiento en un mismo puesto de trabajo.
           </p>
         </div>
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/6 text-sm font-semibold text-cyan-100 shadow-[0_18px_40px_rgba(4,10,24,0.35)] backdrop-blur">

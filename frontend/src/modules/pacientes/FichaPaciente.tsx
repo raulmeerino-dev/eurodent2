@@ -211,6 +211,40 @@ export default function FichaPaciente() {
       </div>
 
       {/* ── Tabs ── */}
+      <div className="shrink-0 border-b border-gray-200 bg-slate-50/70 px-5 py-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <HubShortcutCard
+            label="Presupuestos"
+            value={String(presupuestos.length)}
+            hint="Planes, aceptaciones y odontograma"
+            action="Abrir planes"
+            onClick={() => setTab("presupuestos")}
+          />
+          <HubShortcutCard
+            label="Pendiente"
+            value={String(numPendiente)}
+            hint="Tratamientos pendientes de realizar"
+            action="Revisar trabajo"
+            onClick={() => setTab("pendiente")}
+          />
+          <HubShortcutCard
+            label="Agenda"
+            value={String(citasFuturas.length)}
+            hint="Proximas citas y seguimiento del paciente"
+            action="Ver citas"
+            onClick={() => setTab("citas")}
+          />
+          <HubShortcutCard
+            label="Facturacion"
+            value={formatEUR(saldoPendiente)}
+            hint="Cobros, saldo pendiente y documentos fiscales"
+            action="Abrir cobros"
+            onClick={() => setTab("facturacion")}
+            emphasis={saldoPendiente > 0.01}
+          />
+        </div>
+      </div>
+
       <div className="shrink-0 flex border-b border-gray-200 bg-white px-5 overflow-x-auto">
         {TABS.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
@@ -316,6 +350,41 @@ export default function FichaPaciente() {
 }
 
 // ─── Tab Datos ────────────────────────────────────────────────────────────────
+
+function HubShortcutCard({
+  label,
+  value,
+  hint,
+  action,
+  onClick,
+  emphasis = false,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  action: string;
+  onClick: () => void;
+  emphasis?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        "rounded-2xl border bg-white px-4 py-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+        emphasis ? "border-amber-200 bg-amber-50/70" : "border-slate-200",
+      ].join(" ")}
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{label}</p>
+      <p className={["mt-3 text-2xl font-semibold tracking-tight", emphasis ? "text-amber-700" : "text-slate-900"].join(" ")}>
+        {value}
+      </p>
+      <p className="mt-2 text-sm leading-5 text-slate-500">{hint}</p>
+      <span className="mt-4 inline-flex rounded-full bg-slate-900 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white">
+        {action}
+      </span>
+    </button>
+  );
+}
 
 function TabDatos({
   paciente, refsCatalogo, citasFuturas, citasPasadas, numFaltas, saldoPendiente, onToggleReferencia,

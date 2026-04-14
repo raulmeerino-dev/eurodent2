@@ -14,6 +14,10 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
     title: "Pacientes",
     subtitle: "Ficha centralizada, seguimiento y acceso rapido a cada historial.",
   },
+  "/gestion": {
+    title: "Gestion",
+    subtitle: "Presupuestos, laboratorio y control operativo desde un flujo mas ordenado.",
+  },
   "/presupuestos": {
     title: "Presupuestos",
     subtitle: "Propuestas claras, aceptaciones y conversion a facturacion.",
@@ -30,9 +34,17 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
     title: "Listados",
     subtitle: "Revision operativa y analitica de la actividad del centro.",
   },
+  "/configuracion": {
+    title: "Configuracion",
+    subtitle: "Usuarios, parametros clinicos, horarios y catalogos del sistema.",
+  },
+  "/cumplimiento": {
+    title: "Cumplimiento",
+    subtitle: "Diagnostico SIF, cadena fiscal y control del estado normativo.",
+  },
   "/admin": {
-    title: "Administracion",
-    subtitle: "Usuarios, parametros y controles internos del sistema.",
+    title: "Configuracion",
+    subtitle: "Usuarios, parametros clinicos, horarios y catalogos del sistema.",
   },
 };
 
