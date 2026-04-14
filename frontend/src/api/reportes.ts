@@ -33,6 +33,7 @@ export interface TopTratamiento {
 }
 
 export interface CitasDoctor {
+  doctor_id?: string | null;
   doctor: string;
   color: string | null;
   total: number;
@@ -48,11 +49,13 @@ export interface PacienteListado {
   fecha_nacimiento: string | null;
   activo: boolean;
   total_citas: number;
+  saldo_pendiente: number;
 }
 
 export interface FaltaListado {
   tipo: string;
   fecha: string;
+  paciente_id: string;
   paciente: string;
   num_historial: number;
 }

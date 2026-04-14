@@ -227,6 +227,7 @@ async def citas_por_doctor(
     from app.models.doctor import Doctor
     rows = await db.execute(
         select(
+            Doctor.id,
             Doctor.nombre,
             Doctor.color_agenda,
             func.count(Cita.id).label("total"),
@@ -249,6 +250,7 @@ async def citas_por_doctor(
     )
     return [
         {
+            "doctor_id": str(r.id) if hasattr(r, "id") else None,
             "doctor": r.nombre,
             "color": r.color_agenda,
             "total": r.total,
@@ -270,6 +272,36 @@ async def listado_pacientes(
     offset: int = Query(0, ge=0),
 ) -> list[dict]:
     """Listado de pacientes con conteo de citas y facturas pendientes."""
+    citas_count = (
+        select(func.count(Cita.id))
+        .where(Cita.paciente_id == Paciente.id)
+        .correlate(Paciente)
+        .scalar_subquery()
+    )
+    facturado_total = (
+        select(func.coalesce(func.sum(Factura.total), Decimal("0")))
+        .where(
+            and_(
+                Factura.paciente_id == Paciente.id,
+                Factura.estado != "anulada",
+            )
+        )
+        .correlate(Paciente)
+        .scalar_subquery()
+    )
+    cobrado_total = (
+        select(func.coalesce(func.sum(Cobro.importe), Decimal("0")))
+        .join(Factura, Factura.id == Cobro.factura_id)
+        .where(
+            and_(
+                Factura.paciente_id == Paciente.id,
+                Factura.estado != "anulada",
+            )
+        )
+        .correlate(Paciente)
+        .scalar_subquery()
+    )
+
     stmt = (
         select(
             Paciente.id,
@@ -278,17 +310,9 @@ async def listado_pacientes(
             Paciente.apellidos,
             Paciente.fecha_nacimiento,
             Paciente.activo,
-            func.count(Cita.id.distinct()).label("total_citas"),
-            func.coalesce(
-                func.sum(Factura.total) - func.sum(Factura.total), Decimal("0")
-            ).label("saldo_pendiente"),
+            citas_count.label("total_citas"),
+            func.coalesce(facturado_total - cobrado_total, Decimal("0")).label("saldo_pendiente"),
         )
-        .outerjoin(Cita, Cita.paciente_id == Paciente.id)
-        .outerjoin(Factura, and_(
-            Factura.paciente_id == Paciente.id,
-            Factura.estado.in_(["emitida", "parcial"]),
-        ))
-        .group_by(Paciente.id)
         .order_by(Paciente.apellidos, Paciente.nombre)
         .limit(limit)
         .offset(offset)
@@ -306,6 +330,7 @@ async def listado_pacientes(
             "fecha_nacimiento": r.fecha_nacimiento.isoformat() if r.fecha_nacimiento else None,
             "activo": r.activo,
             "total_citas": r.total_citas,
+            "saldo_pendiente": float(r.saldo_pendiente or 0),
         }
         for r in rows
     ]
@@ -330,6 +355,7 @@ async def listado_faltas(
         select(
             HistorialFaltas.tipo,
             HistorialFaltas.fecha,
+            Paciente.id,
             Paciente.nombre,
             Paciente.apellidos,
             Paciente.num_historial,
@@ -347,6 +373,7 @@ async def listado_faltas(
         {
             "tipo": r.tipo,
             "fecha": r.fecha.isoformat(),
+            "paciente_id": str(r.id),
             "paciente": f"{r.apellidos}, {r.nombre}",
             "num_historial": r.num_historial,
         }

@@ -4,7 +4,7 @@
  * Filtro por doctor.
  * Layout: cabecera operativa | superficie de agenda | panel telefonear
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   addDays,
   addWeeks,
@@ -18,6 +18,7 @@ import {
 import { es } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
 
 import { anularCita, crearEntradaTelefonear } from "../../api/citas";
 import { useCitas } from "../../hooks/useCitas";
@@ -33,9 +34,11 @@ import TelefonearPanel from "./TelefonearPanel";
 type Vista = "dia" | "semana";
 
 export default function AgendaPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const doctorParam = searchParams.get("doctor") || "todos";
   const [fecha, setFecha] = useState<Date>(startOfToday());
   const [vista, setVista] = useState<Vista>("dia");
-  const [doctorFiltro, setDoctorFiltro] = useState<string>("todos");
+  const [doctorFiltro, setDoctorFiltro] = useState<string>(doctorParam);
   const [modalCita, setModalCita] = useState<{
     cita?: Cita;
     fechaHoraInicial?: Date;
@@ -48,6 +51,20 @@ export default function AgendaPage() {
   const [mostrarRecordatorios, setMostrarRecordatorios] = useState(false);
 
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (doctorParam !== doctorFiltro) {
+      setDoctorFiltro(doctorParam);
+    }
+  }, [doctorFiltro, doctorParam]);
+
+  useEffect(() => {
+    if (doctorFiltro === doctorParam) return;
+    const next = new URLSearchParams(searchParams);
+    if (doctorFiltro === "todos") next.delete("doctor");
+    else next.set("doctor", doctorFiltro);
+    setSearchParams(next, { replace: true });
+  }, [doctorFiltro, doctorParam, searchParams, setSearchParams]);
 
   const { data: todosDoctores = [] } = useDoctores(false);
   const doctoresActivos = useMemo(() => todosDoctores.filter((d) => d.activo), [todosDoctores]);

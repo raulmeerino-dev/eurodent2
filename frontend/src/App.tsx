@@ -1,21 +1,22 @@
-import { Component, type ReactNode, useEffect, useRef } from "react";
+import { Component, type ReactNode, Suspense, lazy, useEffect, useRef } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import MainLayout from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
-import AgendaPage from "@/modules/agenda/AgendaPage";
-import AdminPage from "@/modules/admin/AdminPage";
-import LoginPage from "@/modules/auth/LoginPage";
-import FacturaEditor from "@/modules/facturacion/FacturaEditor";
-import FacturacionPage from "@/modules/facturacion/FacturacionPage";
-import GestionPage from "@/modules/gestion/GestionPage";
-import LaboratorioPage from "@/modules/laboratorio/LaboratorioPage";
-import ListadosPage from "@/modules/listados/ListadosPage";
-import FichaPaciente from "@/modules/pacientes/FichaPaciente";
-import PacientesPage from "@/modules/pacientes/PacientesPage";
-import PresupuestoEditor from "@/modules/presupuestos/PresupuestoEditor";
-import PresupuestosPage from "@/modules/presupuestos/PresupuestosPage";
 import { useAuthStore } from "@/store/authStore";
+
+const AgendaPage = lazy(() => import("@/modules/agenda/AgendaPage"));
+const AdminPage = lazy(() => import("@/modules/admin/AdminPage"));
+const LoginPage = lazy(() => import("@/modules/auth/LoginPage"));
+const FacturaEditor = lazy(() => import("@/modules/facturacion/FacturaEditor"));
+const FacturacionPage = lazy(() => import("@/modules/facturacion/FacturacionPage"));
+const GestionPage = lazy(() => import("@/modules/gestion/GestionPage"));
+const LaboratorioPage = lazy(() => import("@/modules/laboratorio/LaboratorioPage"));
+const ListadosPage = lazy(() => import("@/modules/listados/ListadosPage"));
+const FichaPaciente = lazy(() => import("@/modules/pacientes/FichaPaciente"));
+const PacientesPage = lazy(() => import("@/modules/pacientes/PacientesPage"));
+const PresupuestoEditor = lazy(() => import("@/modules/presupuestos/PresupuestoEditor"));
+const PresupuestosPage = lazy(() => import("@/modules/presupuestos/PresupuestosPage"));
 
 function AuthScreen({ title, message }: { title: string; message: string }) {
   return (
@@ -125,6 +126,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RouteScreen() {
+  return (
+    <AuthScreen
+      title="Abriendo modulo"
+      message="Estamos cargando la superficie de trabajo y preparando la vista."
+    />
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -135,36 +145,38 @@ export default function App() {
         }}
       >
         <SessionBootstrap>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
+          <Suspense fallback={<RouteScreen />}>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
 
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/agenda" replace />} />
-              <Route path="agenda" element={<AgendaPage />} />
-              <Route path="pacientes" element={<PacientesPage />} />
-              <Route path="pacientes/:id" element={<FichaPaciente />} />
-              <Route path="pacientes/:id/historial" element={<FichaPaciente />} />
-              <Route path="gestion" element={<GestionPage />} />
-              <Route path="presupuestos" element={<PresupuestosPage />} />
-              <Route path="presupuestos/:id" element={<PresupuestoEditor />} />
-              <Route path="facturacion" element={<FacturacionPage />} />
-              <Route path="facturacion/:id" element={<FacturaEditor />} />
-              <Route path="listados" element={<ListadosPage />} />
-              <Route path="laboratorio" element={<LaboratorioPage />} />
-              <Route path="configuracion" element={<AdminPage initialTab="usuarios" />} />
-              <Route path="cumplimiento" element={<AdminPage initialTab="cumplimiento" />} />
-              <Route path="admin" element={<AdminPage initialTab="usuarios" />} />
-            </Route>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/agenda" replace />} />
+                <Route path="agenda" element={<AgendaPage />} />
+                <Route path="pacientes" element={<PacientesPage />} />
+                <Route path="pacientes/:id" element={<FichaPaciente />} />
+                <Route path="pacientes/:id/historial" element={<FichaPaciente />} />
+                <Route path="gestion" element={<GestionPage />} />
+                <Route path="presupuestos" element={<PresupuestosPage />} />
+                <Route path="presupuestos/:id" element={<PresupuestoEditor />} />
+                <Route path="facturacion" element={<FacturacionPage />} />
+                <Route path="facturacion/:id" element={<FacturaEditor />} />
+                <Route path="listados" element={<ListadosPage />} />
+                <Route path="laboratorio" element={<LaboratorioPage />} />
+                <Route path="configuracion" element={<AdminPage initialTab="usuarios" />} />
+                <Route path="cumplimiento" element={<AdminPage initialTab="cumplimiento" />} />
+                <Route path="admin" element={<AdminPage initialTab="usuarios" />} />
+              </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </SessionBootstrap>
       </BrowserRouter>
     </ErrorBoundary>

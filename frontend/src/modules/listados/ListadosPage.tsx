@@ -1,10 +1,11 @@
-/**
- * ListadosPage — Dashboard de reportes y listados.
- * Tabs: KPIs | Facturación mensual | Top tratamientos | Citas por doctor | Pacientes | Faltas
+﻿/**
+ * ListadosPage â€” Dashboard de reportes y listados.
+ * Tabs: KPIs | FacturaciÃ³n mensual | Top tratamientos | Citas por doctor | Pacientes | Faltas
  */
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek, startOfDay, endOfDay } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import {
   getKPIs,
   getFacturacionMensual,
@@ -19,7 +20,7 @@ type Tab = "kpis" | "facturacion" | "tratamientos" | "doctores" | "pacientes" | 
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "kpis", label: "Resumen" },
-  { id: "facturacion", label: "Facturación mensual" },
+  { id: "facturacion", label: "FacturaciÃ³n mensual" },
   { id: "tratamientos", label: "Top tratamientos" },
   { id: "doctores", label: "Citas por doctor" },
   { id: "pacientes", label: "Listado pacientes" },
@@ -64,6 +65,28 @@ export default function ListadosPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      <div className="mb-4 rounded-[1.75rem] border border-slate-200/80 bg-white/88 px-5 py-4 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
+        <p className="text-[0.68rem] font-medium uppercase tracking-[0.3em] text-slate-400">
+          Listados operativos
+        </p>
+        <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Actividad, caja y seguimiento global</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+              Controla produccion, cobros, pacientes con saldo pendiente y faltas, y salta desde cada fila a la ficha o a la agenda.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+              Rango: {format(desdeDate, "dd/MM/yyyy")} - {format(hastaDate, "dd/MM/yyyy")}
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+              Vista activa: {TABS.find((item) => item.id === tab)?.label}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="shrink-0 flex items-center gap-1 mb-3 border-b border-gray-200 pb-0">
         {TABS.map((t) => (
@@ -85,7 +108,7 @@ export default function ListadosPage() {
         {/* Filtro de fechas (para tabs que lo usan) */}
         {tab !== "facturacion" && tab !== "pacientes" && (
           <div className="flex items-center gap-2 pb-1">
-            {/* Períodos rápidos */}
+            {/* PerÃ­odos rÃ¡pidos */}
             <div className="flex rounded-md border border-gray-300 overflow-hidden text-xs">
               {(["hoy", "semana", "mes", "anno"] as Periodo[]).map((p) => (
                 <button
@@ -95,7 +118,7 @@ export default function ListadosPage() {
                     periodo === p ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
-                  {({ hoy: "Hoy", semana: "Semana", mes: "Mes", anno: "Año" } as Record<string, string>)[p]}
+                  {({ hoy: "Hoy", semana: "Semana", mes: "Mes", anno: "AÃ±o" } as Record<string, string>)[p]}
                 </button>
               ))}
             </div>
@@ -105,7 +128,7 @@ export default function ListadosPage() {
               onChange={(e) => { setDesde(e.target.value); setPeriodo("personalizado"); }}
               className="rounded-md border border-gray-300 px-2 py-1 text-xs"
             />
-            <span className="text-gray-400 text-xs">—</span>
+            <span className="text-gray-400 text-xs">â€”</span>
             <input
               type="date"
               value={hasta}
@@ -116,7 +139,7 @@ export default function ListadosPage() {
         )}
         {tab === "facturacion" && (
           <div className="flex items-center gap-2 pb-1">
-            <label className="text-xs text-gray-500">Año:</label>
+            <label className="text-xs text-gray-500">AÃ±o:</label>
             <select value={anno} onChange={(e) => setAnno(Number(e.target.value))}
               className="rounded-md border border-gray-300 px-2 py-1 text-xs">
               {[hoy.getFullYear(), hoy.getFullYear() - 1, hoy.getFullYear() - 2].map((y) => (
@@ -140,7 +163,7 @@ export default function ListadosPage() {
   );
 }
 
-// ─── Tab KPIs ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab KPIs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TabKPIs({ desde, hasta }: { desde: Date; hasta: Date }) {
   const { data, isLoading } = useQuery({
     queryKey: ["reportes-kpis", desde.toISOString(), hasta.toISOString()],
@@ -165,9 +188,9 @@ function TabKPIs({ desde, hasta }: { desde: Date; hasta: Date }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Facturación */}
+        {/* FacturaciÃ³n */}
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Facturación</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">FacturaciÃ³n</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500">Total facturado</span>
@@ -246,7 +269,7 @@ function TabKPIs({ desde, hasta }: { desde: Date; hasta: Date }) {
   );
 }
 
-// ─── Tab Facturación Mensual ──────────────────────────────────────────────────
+// â”€â”€â”€ Tab FacturaciÃ³n Mensual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TabFacturacionMensual({ anno }: { anno: number }) {
   const { data = [], isLoading } = useQuery({
     queryKey: ["reportes-facturacion-mensual", anno],
@@ -266,7 +289,7 @@ function TabFacturacionMensual({ anno }: { anno: number }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-700">Facturación mensual {anno}</h3>
+        <h3 className="text-sm font-semibold text-gray-700">FacturaciÃ³n mensual {anno}</h3>
         <span className="text-sm text-gray-500">Total: <strong>{formatEUR(total)}</strong></span>
       </div>
       <div className="flex items-end gap-2 h-48">
@@ -307,7 +330,7 @@ function TabFacturacionMensual({ anno }: { anno: number }) {
   );
 }
 
-// ─── Tab Top Tratamientos ────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Top Tratamientos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TabTopTratamientos({ desde, hasta }: { desde: Date; hasta: Date }) {
   const { data = [], isLoading } = useQuery({
     queryKey: ["reportes-top-tratamientos", desde, hasta],
@@ -319,9 +342,9 @@ function TabTopTratamientos({ desde, hasta }: { desde: Date; hasta: Date }) {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Tratamientos más realizados</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-4">Tratamientos mÃ¡s realizados</h3>
       {data.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">Sin datos en el período seleccionado.</p>
+        <p className="text-sm text-gray-400 text-center py-8">Sin datos en el perÃ­odo seleccionado.</p>
       ) : (
         <div className="space-y-2">
           {data.map((t, idx) => (
@@ -347,8 +370,9 @@ function TabTopTratamientos({ desde, hasta }: { desde: Date; hasta: Date }) {
   );
 }
 
-// ─── Tab Citas por Doctor ─────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Citas por Doctor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TabCitasPorDoctor({ desde, hasta }: { desde: Date; hasta: Date }) {
+  const navigate = useNavigate();
   const { data = [], isLoading } = useQuery({
     queryKey: ["reportes-citas-doctor", desde, hasta],
     queryFn: () => getCitasPorDoctor(desde, hasta),
@@ -358,7 +382,7 @@ function TabCitasPorDoctor({ desde, hasta }: { desde: Date; hasta: Date }) {
   if (data.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
-        Sin datos en el período seleccionado.
+        Sin datos en el perÃ­odo seleccionado.
       </div>
     );
   }
@@ -367,9 +391,9 @@ function TabCitasPorDoctor({ desde, hasta }: { desde: Date; hasta: Date }) {
 
   return (
     <div className="space-y-4">
-      {/* Gráfico de barras apiladas */}
+      {/* GrÃ¡fico de barras apiladas */}
       <div className="rounded-lg border border-gray-200 bg-white p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Distribución de citas por doctor</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">DistribuciÃ³n de citas por doctor</h3>
         <div className="space-y-3">
           {data.map((d, idx) => {
             const pAtendidas = d.total > 0 ? (d.atendidas / d.total) * 100 : 0;
@@ -431,7 +455,11 @@ function TabCitasPorDoctor({ desde, hasta }: { desde: Date; hasta: Date }) {
             {data.map((d, idx) => {
               const tasa = d.total > 0 ? Math.round((d.atendidas / d.total) * 100) : 0;
               return (
-                <tr key={idx} className="hover:bg-gray-50">
+                <tr
+                  key={idx}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => d.doctor_id && navigate(`/agenda?doctor=${d.doctor_id}`)}
+                >
                   <td className="px-5 py-2.5 flex items-center gap-2">
                     {d.color && <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />}
                     <span className="font-medium text-gray-800">{d.doctor}</span>
@@ -454,8 +482,9 @@ function TabCitasPorDoctor({ desde, hasta }: { desde: Date; hasta: Date }) {
   );
 }
 
-// ─── Tab Pacientes ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Pacientes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TabPacientes() {
+  const navigate = useNavigate();
   const [soloActivos, setSoloActivos] = useState(true);
   const { data = [], isLoading } = useQuery({
     queryKey: ["reportes-pacientes", soloActivos],
@@ -463,14 +492,15 @@ function TabPacientes() {
   });
 
   function exportarCSV() {
-    const headers = ["HC", "Apellidos", "Nombre", "F. Nacimiento", "Citas", "Activo"];
+    const headers = ["HC", "Apellidos", "Nombre", "F. Nacimiento", "Citas", "Saldo pendiente", "Activo"];
     const rows = data.map((p) => [
       p.num_historial,
       p.apellidos,
       p.nombre,
       p.fecha_nacimiento ? format(new Date(p.fecha_nacimiento + "T00:00:00"), "dd/MM/yyyy") : "",
       p.total_citas,
-      p.activo ? "Sí" : "No",
+      formatEUR(p.saldo_pendiente),
+      p.activo ? "Si" : "No",
     ]);
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(";")).join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
@@ -485,10 +515,10 @@ function TabPacientes() {
   if (isLoading) return <Spinner />;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-      <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-100">
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="flex items-center gap-4 border-b border-gray-100 px-5 py-3">
         <h3 className="text-sm font-semibold text-gray-700">Listado de pacientes</h3>
-        <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+        <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-500">
           <input
             type="checkbox"
             checked={soloActivos}
@@ -501,34 +531,48 @@ function TabPacientes() {
         <button
           onClick={exportarCSV}
           disabled={data.length === 0}
-          className="ml-auto rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 flex items-center gap-1.5"
+          className="ml-auto flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40"
         >
-          ↓ Exportar CSV
+          Exportar CSV
         </button>
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-100 sticky top-0">
+        <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
           <tr>
             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">HC</th>
             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">Nombre</th>
             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">F. Nacimiento</th>
             <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Citas</th>
+            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Pendiente</th>
             <th className="px-4 py-2 text-center text-xs font-semibold text-gray-500">Activo</th>
+            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Abrir</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {data.map((p) => (
-            <tr key={p.id} className="hover:bg-gray-50">
-              <td className="px-4 py-2 text-xs text-gray-400 tabular-nums font-mono">{p.num_historial}</td>
+            <tr key={p.id} className="cursor-pointer hover:bg-gray-50" onClick={() => navigate(`/pacientes/${p.id}`)}>
+              <td className="px-4 py-2 font-mono text-xs text-gray-400 tabular-nums">{p.num_historial}</td>
               <td className="px-4 py-2 font-medium text-gray-800">{p.apellidos}, {p.nombre}</td>
               <td className="px-4 py-2 text-xs text-gray-500">
                 {p.fecha_nacimiento ? format(new Date(p.fecha_nacimiento + "T00:00:00"), "dd/MM/yyyy") : "—"}
               </td>
-              <td className="px-4 py-2 text-right tabular-nums text-gray-600">{p.total_citas}</td>
+              <td className="px-4 py-2 text-right text-gray-600 tabular-nums">{p.total_citas}</td>
+              <td className={`px-4 py-2 text-right font-medium tabular-nums ${p.saldo_pendiente > 0 ? "text-red-600" : "text-gray-400"}`}>
+                {p.saldo_pendiente > 0 ? formatEUR(p.saldo_pendiente) : "—"}
+              </td>
               <td className="px-4 py-2 text-center">
-                {p.activo
-                  ? <span className="text-green-600 text-xs">✓</span>
-                  : <span className="text-gray-300 text-xs">—</span>}
+                {p.activo ? <span className="text-xs text-green-600">✓</span> : <span className="text-xs text-gray-300">—</span>}
+              </td>
+              <td className="px-4 py-2 text-right">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/pacientes/${p.id}`);
+                  }}
+                  className="rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                >
+                  Ficha
+                </button>
               </td>
             </tr>
           ))}
@@ -538,8 +582,9 @@ function TabPacientes() {
   );
 }
 
-// ─── Tab Faltas ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab Faltas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TabFaltas({ desde, hasta }: { desde: Date; hasta: Date }) {
+  const navigate = useNavigate();
   const { data = [], isLoading } = useQuery({
     queryKey: ["reportes-faltas", desde, hasta],
     queryFn: () => getListadoFaltas(desde, hasta),
@@ -554,26 +599,27 @@ function TabFaltas({ desde, hasta }: { desde: Date; hasta: Date }) {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
         <h3 className="text-sm font-semibold text-gray-700">Faltas y anulaciones</h3>
         <span className="text-xs text-gray-400">{data.length} registros</span>
       </div>
       {data.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">Sin faltas en el período seleccionado.</p>
+        <p className="py-8 text-center text-sm text-gray-400">Sin faltas en el período seleccionado.</p>
       ) : (
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="border-b border-gray-100 bg-gray-50">
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">Fecha</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">Tipo</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">Paciente</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">HC</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Abrir</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {data.map((f, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
+              <tr key={idx} className="cursor-pointer hover:bg-gray-50" onClick={() => navigate(`/pacientes/${f.paciente_id}`)}>
                 <td className="px-4 py-2 text-xs text-gray-500 tabular-nums">
                   {format(new Date(f.fecha), "dd/MM/yyyy HH:mm")}
                 </td>
@@ -583,7 +629,18 @@ function TabFaltas({ desde, hasta }: { desde: Date; hasta: Date }) {
                   </span>
                 </td>
                 <td className="px-4 py-2 text-gray-800">{f.paciente}</td>
-                <td className="px-4 py-2 text-right text-xs text-gray-400 tabular-nums font-mono">{f.num_historial}</td>
+                <td className="px-4 py-2 text-right font-mono text-xs text-gray-400 tabular-nums">{f.num_historial}</td>
+                <td className="px-4 py-2 text-right">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/pacientes/${f.paciente_id}`);
+                    }}
+                    className="rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    Ficha
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -593,7 +650,7 @@ function TabFaltas({ desde, hasta }: { desde: Date; hasta: Date }) {
   );
 }
 
-// ─── Componentes auxiliares ───────────────────────────────────────────────────
+// â”€â”€â”€ Componentes auxiliares â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Spinner() {
   return (
     <div className="flex h-40 items-center justify-center text-sm text-gray-400">Cargando...</div>
@@ -620,3 +677,4 @@ function KPICard({ title, value, sub, color }: {
     </div>
   );
 }
+
